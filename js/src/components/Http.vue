@@ -1,10 +1,16 @@
 <template>
   <div>
     <h1>http</h1>
-    <input type="text">
+    <input type="text" v-model="name">
     <input type="button" value="Add" @click="post()">
     <ul>
-      <li v-for="t in tasks" :key="t"><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">{{t}}</a></li>
+      <li v-for="t in tasks" :key="t.id">
+        <a>
+          <input type="button" value="🗑" @click="del(t)">
+          <input type="checkbox" :checked="t.Done" @click="put(t, $event)">
+          {{t.Name}}
+        </a>
+      </li>
     </ul>
     <ul>
     </ul>
@@ -18,13 +24,35 @@ export default {
   name: 'Http',
   data() {
     return {
-      tasks: ["babel1","eslint2","babel3","eslint4"]
+      tasks: [],
+      name: "",
     }
   },
+  created() {
+    this.get()
+  },
   methods: {
+    get() {
+      axios.get('http://localhost:1323/tasks').then((r) => {
+        this.tasks = r.data
+      })
+    },
     post() {
-      axios.get('http://localhost:8080/').then((r) => {
-        console.log(r)
+      axios.post('http://localhost:1323/tasks', {name: this.name}).then(() => {
+        this.name = ""
+        this.get()
+      })
+    },
+    put(t, e) {
+      const done = e.target.checked
+      axios.put('http://localhost:1323/tasks', {id: t.Id, done: done}).then(() => {
+        this.get()
+      })
+    },
+    del(t) {
+      console.log(t)
+      axios.delete('http://localhost:1323/tasks', {data:{id: t.Id}}).then(() => {
+        this.get()
       })
     }
   }
