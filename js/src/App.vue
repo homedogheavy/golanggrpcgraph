@@ -1,16 +1,22 @@
 <template>
   <div id="app">
     <Http />
+    <Grpc />
+    <Graphql />
   </div>
 </template>
 
 <script>
 import Http from './components/Http.vue'
+import Grpc from './components/Grpc.vue'
+import Graphql from './components/Graphql.vue'
 
 export default {
   name: 'App',
   components: {
-    Http
+    Http,
+    Grpc,
+    Graphql
   }
 }
 </script>

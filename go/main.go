@@ -2,9 +2,13 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"./handler"
+	taskservice "./proto/task"
+	"google.golang.org/grpc"
 
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -12,6 +16,15 @@ import (
 func main() {
 	// Echoのインスタンス作る
 	e := echo.New()
+
+	e.Use(middleware.RecoverWithConfig(middleware.DefaultRecoverConfig))
+	e.Use(gRPCMiddleware(grpc.NewServer()))
+
+	s := &http.Server{}
+	s.Addr = ":1323"
+	s.WriteTimeout = time.Minute * 3
+
+	e.Logger.Fatal(e.StartServer(s))
 
 	// 全てのリクエストで差し込みたいミドルウェア（ログとか）はここ
 	e.Use(middleware.Logger())
@@ -30,4 +43,20 @@ func main() {
 
 	// サーバー起動
 	e.Start(":1323")
+}
+func gRPCMiddleware(grpcServer *grpc.Server) func(next echo.HandlerFunc) echo.HandlerFunc {
+
+	grpcTaskHandler := handler.NewGrpcTaskHandler()
+	taskservice.RegisterTaskServiceServer(grpcServer, grpcTaskHandler)
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			wrappedGrpc := grpcweb.WrapServer(grpcServer)
+			req := c.Request()
+			resp := c.Response()
+			if wrappedGrpc.IsGrpcWebRequest(req) {
+				wrappedGrpc.ServeHTTP(resp, req)
+			}
+			return next(c)
+		}
+	}
 }
