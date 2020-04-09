@@ -7,8 +7,8 @@
       <li v-for="t in tasks" :key="t.id">
         <a>
           <input type="button" value="🗑" @click="del(t)">
-          <input type="checkbox" :checked="t.Done" @click="put(t, $event)">
-          {{t.Name}}
+          <input type="checkbox" :checked="t.done" @click="put(t, $event)">
+          {{t.name}}
         </a>
       </li>
     </ul>
@@ -18,7 +18,13 @@
 </template>
 
 <script>
-import axios from 'axios'
+const {TaskServiceClient, GetTaskRequest, PostTaskRequest, PutTaskRequest, DeleteTaskRequest} = require('../../proto/task_service_grpc_web_pb.js');
+const enableDevTools = window.__GRPCWEB_DEVTOOLS__ || (() => {});
+const client = new TaskServiceClient('http://localhost:1323');
+enableDevTools([
+  client,
+]);
+
 
 export default {
   name: 'Grpc',
@@ -33,28 +39,41 @@ export default {
   },
   methods: {
     get() {
-      axios.get('http://localhost:1323/tasks').then((r) => {
-        this.tasks = r.data
-      })
+      const request = new GetTaskRequest();
+      client.getTasks(request, {}, (err, response) => {
+        this.tasks = response.toObject().tasksList
+      });
     },
     post() {
-      axios.post('http://localhost:1323/tasks', {name: this.name}).then(() => {
+      const request = new PostTaskRequest();
+      request.setName(this.name)
+      client.postTask(request, {}, (err, response) => {
+        console.log(response)
+        console.log(err)
         this.name = ""
         this.get()
-      })
+      });
     },
     put(t, e) {
       const done = e.target.checked
-      axios.put('http://localhost:1323/tasks', {id: t.Id, done: done}).then(() => {
+      const request = new PutTaskRequest();
+      request.setId(t.id)
+      request.setDone(done)
+      client.putTask(request, {}, (err, response) => {
+        console.log(response)
+        console.log(err)
         this.get()
-      })
+      });
     },
     del(t) {
-      console.log(t)
-      axios.delete('http://localhost:1323/tasks', {data:{id: t.Id}}).then(() => {
+      const request = new DeleteTaskRequest();
+      request.setId(t.id)
+      client.deleteTask(request, {}, (err, response) => {
+        console.log(response)
+        console.log(err)
         this.get()
-      })
-    }
+      });
+    },
   }
 }
 </script>

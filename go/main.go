@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	"./handler"
 	taskservice "./proto/task"
@@ -17,14 +16,10 @@ func main() {
 	// Echoのインスタンス作る
 	e := echo.New()
 
+	e.Use(middleware.CORS())
+
 	e.Use(middleware.RecoverWithConfig(middleware.DefaultRecoverConfig))
 	e.Use(gRPCMiddleware(grpc.NewServer()))
-
-	s := &http.Server{}
-	s.Addr = ":1323"
-	s.WriteTimeout = time.Minute * 3
-
-	e.Logger.Fatal(e.StartServer(s))
 
 	// 全てのリクエストで差し込みたいミドルウェア（ログとか）はここ
 	e.Use(middleware.Logger())
