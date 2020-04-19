@@ -36,6 +36,12 @@ func main() {
 	e.PUT("/tasks", handler.PutTasks())
 	e.DELETE("/tasks", handler.DeleteTasks())
 
+	h, _ := handler.NewGraphqlHandler()
+	//e.GET("/graphql/tasks", echo.WrapHandler(h))
+	e.POST("/graphql/tasks", echo.WrapHandler(h))
+	//e.PUT("/graphql/tasks", echo.WrapHandler(h))
+	//e.DELETE("/graphql/tasks", echo.WrapHandler(h))
+
 	// サーバー起動
 	e.Start(":1323")
 }
