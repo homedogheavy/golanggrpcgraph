@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/graphql-go/graphql"
 	graphqlHandler "github.com/graphql-go/handler"
@@ -30,7 +31,12 @@ var graphqlTask = graphql.NewObject(
 	},
 )
 
-func NewGraphqlHandler() (*graphqlHandler.Handler, error) {
+func NewGraphqlHandler() http.Handler {
+	//query := fields.SetQuery()
+	//mutateQuery := fields.SetMutation()
+	//rootMutation := graphql.NewObject(graphql.ObjectConfig{Name: "RootMutation", Fields: mutateQuery})
+	//rootQuery := graphql.NewObject(graphql.ObjectConfig{Name: "RootQuery", Fields: query})
+
 	schema, err := graphql.NewSchema(
 		graphql.SchemaConfig{
 			Query:    newQuery(),
@@ -38,27 +44,123 @@ func NewGraphqlHandler() (*graphqlHandler.Handler, error) {
 		},
 	)
 	if err != nil {
-		return nil, err
+
+		fmt.Println("------------------------------------------------------------------------------------------------------------------------------------------------------")
+		fmt.Println(err)
+		return nil
 	}
 
 	return graphqlHandler.New(&graphqlHandler.Config{
 		Schema:   &schema,
 		Pretty:   true,
 		GraphiQL: true,
-	}), nil
+	})
+	//return handler.New(&handler.Config{
+	//	Schema:     &schema,
+	//	Pretty:     true,
+	//	GraphiQL:   false,
+	//	Playground: true,
+	//})
 }
-func newQuery() *graphql.Object {
-	return graphql.NewObject(graphql.ObjectConfig{
 
-		Name: "Query",
+//func GraphqlSetting() http.Handler {
+//	query := fields.SetQuery()
+//	mutateQuery := fields.SetMutation()
+//	rootMutation := graphql.NewObject(graphql.ObjectConfig{Name: "RootMutation", Fields: mutateQuery})
+//	rootQuery := graphql.NewObject(graphql.ObjectConfig{Name: "RootQuery", Fields: query})
+//
+//	schema, err := graphql.NewSchema(graphql.SchemaConfig{
+//		Query:    rootQuery,
+//		Mutation: rootMutation,
+//	})
+//	if err != nil {
+//		panic(err)
+//	}
+//	h := handler.New(&handler.Config{
+//		Schema:     &schema,
+//		Pretty:     true,
+//		GraphiQL:   false,
+//		Playground: true,
+//	})
+//	return h
+//}
+
+func SetQuery() graphql.Fields {
+	//query := graphql.Fields{
+	//	"SampleQuery": &graphql.Field{
+	//		Type:    SampleQueryType(),
+	//		Args:    SampleQueryArgs(),
+	//		Resolve: SampleQueryResolve,
+	//	},
+	//}
+	//return query
+
+	query := graphql.Fields{
+		"GetQuery": &graphql.Field{
+			Type: SampleQueryType(),
+			//Args:    SampleQueryArgs(),
+			Resolve: SampleQueryResolve,
+		},
+	}
+	return query
+	//return graphql.NewObject(graphql.ObjectConfig{
+	//	Name: "GetQuery",
+	//	Fields: graphql.Fields{
+	//		"tasks": NewUsers(),
+	//	},
+	//})
+}
+func SampleQueryType() *graphql.Object {
+	sampleType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "SampleQuery",
 		Fields: graphql.Fields{
 			"tasks": NewUsers(),
+			//"Message": &graphql.Field{
+			//	Type: graphql.String,
+			//},
 		},
 	})
+	return sampleType
+}
+
+func SampleQueryArgs() map[string]*graphql.ArgumentConfig {
+	sampleArgs := graphql.FieldConfigArgument{
+		"ID": &graphql.ArgumentConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"Password": &graphql.ArgumentConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	}
+	return sampleArgs
+}
+
+type SampleMutateResp struct {
+	Message string
+}
+
+func SampleQueryResolve(params graphql.ResolveParams) (interface{}, error) {
+	resp := &SampleMutateResp{
+		Message: "Hello, This is SampleQuery",
+	}
+	return resp, nil
+}
+
+func newQuery() *graphql.Object {
+	return graphql.NewObject(graphql.ObjectConfig{
+		Name:   "RootQuery",
+		Fields: SetQuery(),
+	})
+	//return graphql.NewObject(graphql.ObjectConfig{
+	//	Name: "GetQuery",
+	//	Fields: graphql.Fields{
+	//		"tasks": NewUsers(),
+	//	},
+	//})
 }
 func newMutation() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
-		Name: "Query",
+		Name: "postQuery",
 		Fields: graphql.Fields{
 			"postTask":   NewUsers(),
 			"putTask":    NewUsers(),
@@ -74,6 +176,8 @@ func NewUsers() *graphql.Field {
 	return &graphql.Field{
 		Type: graphql.NewList(graphqlTask),
 		Resolve: func(p graphql.ResolveParams) (i interface{}, e error) {
+			fmt.Println("-----------------------------------------------------------------------------------------------")
+			fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 			//var u []*model.User
 			fmt.Println(p)
 			//if err := db.Find(&u).Error; err != nil {

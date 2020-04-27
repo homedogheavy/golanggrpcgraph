@@ -36,7 +36,7 @@ func main() {
 	e.PUT("/tasks", handler.PutTasks())
 	e.DELETE("/tasks", handler.DeleteTasks())
 
-	h, _ := handler.NewGraphqlHandler()
+	h := handler.NewGraphqlHandler()
 	//e.GET("/graphql/tasks", echo.WrapHandler(h))
 	e.POST("/graphql/tasks", echo.WrapHandler(h))
 	//e.PUT("/graphql/tasks", echo.WrapHandler(h))

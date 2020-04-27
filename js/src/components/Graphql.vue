@@ -33,15 +33,52 @@ export default {
   },
   methods: {
     get() {
-      axios.get('http://localhost:1323/tasks').then((r) => {
-        this.tasks = r.data
+      //axios.get('http://localhost:1323/tasks').then((r) => {
+      //  this.tasks = r.data
+      //})
+      axios({
+        url: 'http://localhost:1323/graphql/tasks',
+        headers: {
+          //Authorization: `bearer ${accessToken}`,
+          //Accept: 'application/vnd.github.v4.idl'
+        },
+        method: 'POST',
+        data: {
+          query: `query {
+            GetQuery {
+              tasks {
+                id
+              }
+            }
+          }`
+        }
       })
+        .then(res => res.data)
+        .then(console.log)
+
     },
     post() {
-      axios.post('http://localhost:1323/tasks', {name: this.name}).then(() => {
-        this.name = ""
-        this.get()
+      //axios.post('http://localhost:1323/tasks', {name: this.name}).then(() => {
+      //  this.name = ""
+      //  this.get()
+      //})
+      axios({
+        url: 'http://localhost:1323/graphql/tasks',
+        headers: {
+          //Authorization: `bearer ${accessToken}`,
+          //Accept: 'application/vnd.github.v4.idl'
+        },
+        method: 'POST',
+        data: {
+          query: `postQuery {
+            postTask() {
+              id
+            }
+          }`
+        }
       })
+        .then(res => res.data)
+        .then(console.log)
     },
     put(t, e) {
       const done = e.target.checked
