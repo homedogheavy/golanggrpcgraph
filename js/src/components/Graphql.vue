@@ -7,8 +7,8 @@
       <li v-for="t in tasks" :key="t.id">
         <a>
           <input type="button" value="🗑" @click="del(t)">
-          <input type="checkbox" :checked="t.Done" @click="put(t, $event)">
-          {{t.Name}}
+          <input type="checkbox" :checked="t.done" @click="put(t, $event)">
+          {{t.name}}
         </a>
       </li>
     </ul>
@@ -33,62 +33,76 @@ export default {
   },
   methods: {
     get() {
-      //axios.get('http://localhost:1323/tasks').then((r) => {
-      //  this.tasks = r.data
-      //})
       axios({
         url: 'http://localhost:1323/graphql/tasks',
-        headers: {
-          //Authorization: `bearer ${accessToken}`,
-          //Accept: 'application/vnd.github.v4.idl'
-        },
+        headers: {},
         method: 'POST',
         data: {
           query: `query {
             GetQuery {
               tasks {
-                id
+                id,
+                name,
+                done
               }
             }
           }`
         }
       })
-        .then(res => res.data)
-        .then(console.log)
-
+      .then(res => res.data)
+      .then(res => {
+        this.tasks = res.data.GetQuery.tasks
+      })
     },
     post() {
-      //axios.post('http://localhost:1323/tasks', {name: this.name}).then(() => {
-      //  this.name = ""
-      //  this.get()
-      //})
       axios({
         url: 'http://localhost:1323/graphql/tasks',
-        headers: {
-          //Authorization: `bearer ${accessToken}`,
-          //Accept: 'application/vnd.github.v4.idl'
-        },
+        headers: {},
         method: 'POST',
         data: {
-          query: `postQuery {
-            postTask() {
+          query: `mutation {
+            PostTask(Name: "${this.name}") {
               id
             }
           }`
         }
       })
-        .then(res => res.data)
-        .then(console.log)
+      .then(() => {
+        this.get()
+      })
     },
     put(t, e) {
       const done = e.target.checked
-      axios.put('http://localhost:1323/tasks', {id: t.Id, done: done}).then(() => {
+      axios({
+        url: 'http://localhost:1323/graphql/tasks',
+        headers: {},
+        method: 'POST',
+        data: {
+          query: `mutation {
+            PutTask(Id: ${t.id}, Done: ${done}) {
+              id
+            }
+          }`
+        }
+      })
+      .then(() => {
         this.get()
       })
     },
     del(t) {
-      console.log(t)
-      axios.delete('http://localhost:1323/tasks', {data:{id: t.Id}}).then(() => {
+      axios({
+        url: 'http://localhost:1323/graphql/tasks',
+        headers: {},
+        method: 'POST',
+        data: {
+          query: `mutation {
+            DeleteTask(Id: ${t.id}) {
+              id
+            }
+          }`
+        }
+      })
+      .then(() => {
         this.get()
       })
     }
