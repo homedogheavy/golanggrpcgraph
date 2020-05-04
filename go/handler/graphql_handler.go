@@ -6,15 +6,17 @@ import (
 
 	"github.com/graphql-go/graphql"
 	graphqlHandler "github.com/graphql-go/handler"
+	"github.com/k0kubun/pp"
 )
 
-type GraphqlTask struct {
-	Id   int
-	Name string
-	Done bool
-}
+//type Task struct {
+//	Id   int
+//	Name string
+//	Done bool
+//}
 
-var graphqlTasks = make([]*GraphqlTask, 0)
+var graphqlTasks = make([]*Task, 0)
+var tasks = make([]Task, 0)
 
 var graphqlTask = graphql.NewObject(
 	graphql.ObjectConfig{
@@ -160,13 +162,83 @@ func newQuery() *graphql.Object {
 }
 func newMutation() *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
-		Name: "postQuery",
+		Name: "RootMutation",
 		Fields: graphql.Fields{
-			"postTask":   NewUsers(),
-			"putTask":    NewUsers(),
-			"deleteTask": NewUsers(),
+			"PostTask": GraphqlPostTasks(),
 		},
 	})
+	//return graphql.NewObject(graphql.ObjectConfig{
+	//	Name: "postQuery",
+	//	Fields: graphql.Fields{
+	//		"postTask":   NewUsers(),
+	//		"putTask":    NewUsers(),
+	//		"deleteTask": NewUsers(),
+	//	},
+	//})
+}
+
+func SampleQueryArgs2() map[string]*graphql.ArgumentConfig {
+	sampleArgs := graphql.FieldConfigArgument{
+		"Name": &graphql.ArgumentConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		//"Password": &graphql.ArgumentConfig{
+		//	Type: graphql.NewNonNull(graphql.String),
+		//},
+	}
+	return sampleArgs
+}
+func GraphqlPostTasks() *graphql.Field {
+	return &graphql.Field{
+		Type: graphql.NewList(graphqlTask),
+		Args: SampleQueryArgs2(),
+		Resolve: func(p graphql.ResolveParams) (i interface{}, e error) {
+			fmt.Println("-----------------------------------------------------------------------------------------------")
+			fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+			//var u []*model.User
+			pp.Println(p.Args["Name"])
+			//if err := db.Find(&u).Error; err != nil {
+			//	// do something
+			//}
+
+			//req := &struct {
+			//	Name string
+			//}{}
+			//if err := c.Bind(req); err != nil {
+			//	return c.NoContent(http.StatusBadRequest)
+			//}
+			name, ok := p.Args["Name"].(string)
+			if !ok {
+				return graphqlTasks, nil
+			}
+			task := Task{
+				Id:   len(tasks) + 1,
+				Name: name,
+				Done: false,
+			}
+			tasks = append(tasks, task)
+			pp.Println(tasks)
+			// return c.NoContent(http.StatusOK)
+			return graphqlTasks, nil
+		},
+		Description: "graphqlTask",
+	}
+
+	//return func(c echo.Context) error {
+	//	req := &struct {
+	//		Name string
+	//	}{}
+	//	if err := c.Bind(req); err != nil {
+	//		return c.NoContent(http.StatusBadRequest)
+	//	}
+	//	task := Task{
+	//		Id:   len(Tasks) + 1,
+	//		Name: req.Name,
+	//		Done: false,
+	//	}
+	//	Tasks = append(Tasks, task)
+	//	return c.NoContent(http.StatusOK)
+	//}
 }
 
 func NewUsers() *graphql.Field {
